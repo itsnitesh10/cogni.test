@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CogniTest — Results</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/"><span>Cogni</span>Test</a>
+  <div class="navbar-right">
+    <a class="nav-link" href="/">New Test</a>
+    <a class="nav-link" href="/history">History</a>
+    <a class="nav-link" href="/ai/{{ data[0] }}">AI Analysis</a>
+    <button class="theme-toggle" id="themeToggle">🌙</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <div class="page-eyebrow">Session #{{ data[0] }} · {{ data[1] }} Difficulty</div>
+    <h1 class="page-title">Your <em>Results</em></h1>
+  </div>
+
+  <div class="dashboard">
+
+    <!-- Hero -->
+    <div class="card hero-card span-3">
+      <div class="score-ring-wrap">
+        <div class="score-ring">
+          <svg width="140" height="140" viewBox="0 0 140 140">
+            <circle cx="70" cy="70" r="58" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
+            <circle cx="70" cy="70" r="58" fill="none"
+              stroke="{% if ml_score < 25 %}#7ae8b8{% elif ml_score < 60 %}#f0c070{% else %}#ff8a7a{% endif %}"
+              stroke-width="8" stroke-linecap="round"
+              stroke-dasharray="{{ (ml_score / 100 * 364.4) | round(1) }} 364.4"/>
+          </svg>
+          <div class="score-ring-text">
+            <span class="score-num">{{ ml_score }}</span>
+            <span class="score-label">Load</span>
+          </div>
+        </div>
+        <div class="hero-meta">
+          <div class="hero-grade">{{ grade }}</div>
+          <div class="hero-grade-label">{{ grade_label }}</div>
+          <span class="badge {% if ml_level == 'Low' %}badge-ok{% elif ml_level == 'Moderate' %}badge-warn{% else %}badge-danger{% endif %}">
+            <span class="dot {% if ml_level == 'Low' %}dot-ok{% elif ml_level == 'Moderate' %}dot-warn{% else %}dot-danger{% endif %}"></span>
+            {{ ml_level }} Cognitive Load
+          </span>
+          <div class="hero-delta" style="margin-top:14px;">
+            {% if delta > 0 %}<span class="delta-up">▲ +{{ delta }} vs previous session</span>
+            {% elif delta < 0 %}<span class="delta-down">▼ {{ delta|abs }} vs previous session</span>
+            {% else %}First session on record{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="card">
+      <div class="card-label">Speed</div>
+      <div class="card-value">{{ data[2]|round(1) }}<span class="card-unit">wpm</span></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Accuracy</div>
+      <div class="card-value">{{ data[6]|round(1) }}<span class="card-unit">%</span></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Errors</div>
+      <div class="card-value" style="color:{% if data[3] > 5 %}var(--danger){% elif data[3] > 2 %}var(--warn){% else %}var(--ok){% endif %}">{{ data[3] }}</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Backspaces</div>
+      <div class="card-value">{{ data[4] }}</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Pauses (2s+)</div>
+      <div class="card-value">{{ data[5] }}</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Formula Score</div>
+      <div class="card-value" style="font-size:24px;">{{ data[7] }}</div>
+    </div>
+
+    <!-- Breakdown -->
+    <div class="card span-2">
+      <div class="section-title">Load Factor Breakdown</div>
+      <hr class="divider">
+      {% for key, factor in breakdown.items() %}
+      <div class="breakdown-row">
+        <div class="breakdown-top">
+          <span class="breakdown-name">{{ factor.label }}</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="badge {% if factor.level == 'Low' %}badge-ok{% elif factor.level == 'Moderate' %}badge-warn{% else %}badge-danger{% endif %}" style="font-size:11px;padding:2px 9px;">{{ factor.level }}</span>
+            <span class="breakdown-val">{{ factor.value }}</span>
+          </div>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill {% if factor.level == 'Low' %}bar-ok{% elif factor.level == 'Moderate' %}bar-warn{% else %}bar-danger{% endif %}"
+               style="width:{{ [factor.value, 100]|min }}%"></div>
+        </div>
+        <div class="breakdown-advice">{{ factor.advice }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- ML feature weights -->
+    <div class="card span-1">
+      <div class="section-title">ML Feature Weights</div>
+      <hr class="divider">
+      {% for name, val in feature_importance.items() %}
+      <div class="breakdown-row">
+        <div class="breakdown-top">
+          <span class="breakdown-name">{{ name }}</span>
+          <span class="breakdown-val">{{ val }}%</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill bar-ok" style="width:{{ val }}%"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Radar — uses server-computed scores -->
+    <div class="card span-2">
+      <div class="section-title">Performance vs Benchmark</div>
+      <hr class="divider">
+      <div class="chart-container"><canvas id="radarChart"></canvas></div>
+    </div>
+
+    <!-- Doughnut — uses server-computed scores -->
+    <div class="card span-1">
+      <div class="section-title">Score Composition</div>
+      <hr class="divider">
+      <div class="chart-container" style="height:230px;"><canvas id="doughnutChart"></canvas></div>
+    </div>
+
+  </div>
+
+  <div class="btn-row">
+    <a class="btn btn-primary" href="/ai/{{ data[0] }}">View AI Analysis →</a>
+    <a class="btn" href="/history">History</a>
+    <a class="btn" href="/">New Test</a>
+  </div>
+</div>
+
+<script>
+// Server-computed accurate scores — no client-side guessing
+const radarYou = [
+  {{ radar.speed }},
+  {{ radar.accuracy }},
+  {{ radar.focus }},
+  {{ radar.stability }}
+];
+
+const radarBench = [
+  {{ radar.bench_speed }},
+  {{ radar.bench_accuracy }},
+  {{ radar.bench_focus }},
+  {{ radar.bench_stability }}
+];
+
+const isDark    = () => document.documentElement.getAttribute('data-theme') === 'dark';
+const gridColor = () => isDark() ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+const lblColor  = () => isDark() ? '#9aaec8' : '#7a8faa';
+
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+
+new Chart(document.getElementById('radarChart'), {
+  type: 'radar',
+  data: {
+    labels: ['Speed', 'Accuracy', 'Focus', 'Stability'],
+    datasets: [
+      {
+        label: 'You',
+        data: radarYou,
+        borderColor: '#3d6adb',
+        backgroundColor: 'rgba(61,106,219,0.1)',
+        pointBackgroundColor: '#3d6adb',
+        borderWidth: 2,
+        pointRadius: 4
+      },
+      {
+        label: 'Benchmark',
+        data: radarBench,
+        borderColor: 'rgba(196,125,18,0.7)',
+        backgroundColor: 'rgba(196,125,18,0.05)',
+        pointBackgroundColor: '#c47d12',
+        borderWidth: 1,
+        borderDash: [4,4],
+        pointRadius: 3
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      r: {
+        min: 0, max: 100,
+        ticks: { display: false },
+        grid: { color: gridColor() },
+        angleLines: { color: gridColor() },
+        pointLabels: { font: { size: 12 }, color: lblColor() }
+      }
+    },
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 16, boxWidth: 10, color: lblColor() } }
+    }
+  }
+});
+
+new Chart(document.getElementById('doughnutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Speed', 'Accuracy', 'Focus', 'Stability'],
+    datasets: [{
+      data: radarYou,
+      backgroundColor: ['#3d6adb', '#1a9e6e', '#c47d12', '#8b5cf6'],
+      borderColor: isDark() ? '#1f2a40' : '#ffffff',
+      borderWidth: 3
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '65%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 12, boxWidth: 10, color: lblColor() } }
+    }
+  }
+});
+</script>
+
+<script>
+  const html  = document.documentElement;
+  const tbtn  = document.getElementById('themeToggle');
+  const saved = localStorage.getItem('theme') || 'light';
+  html.setAttribute('data-theme', saved);
+  tbtn.textContent = saved === 'dark' ? '☀️' : '🌙';
+  tbtn.addEventListener('click', () => {
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    tbtn.textContent = next === 'dark' ? '☀️' : '🌙';
+  });
+  document.addEventListener("DOMContentLoaded", () => document.body.classList.add("loaded"));
+  document.querySelectorAll("a[href]").forEach(link => {
+    link.addEventListener("click", function(e) {
+      if (this.href.startsWith(window.location.origin)) {
+        e.preventDefault(); document.body.classList.remove("loaded");
+        setTimeout(() => window.location = this.href, 300);
+      }
+    });
+  });
+</script>
+</body>
+</html>

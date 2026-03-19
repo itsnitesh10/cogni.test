@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CogniTest — History</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/"><span>Cogni</span>Test</a>
+  <div class="navbar-right">
+    <a class="nav-link" href="/">New Test</a>
+    <button class="theme-toggle" id="themeToggle">🌙</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <div class="page-eyebrow">Performance Over Time</div>
+    <h1 class="page-title">Session <em>History</em></h1>
+  </div>
+
+  {% if rows %}
+
+  <div class="card" style="margin-bottom:20px;">
+    <div class="section-title">Load Score Trend</div>
+    <hr class="divider">
+    <div style="position:relative; height:220px;">
+      <canvas id="trendChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">All Sessions</div>
+    <hr class="divider">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Difficulty</th><th>WPM</th><th>Accuracy</th>
+          <th>Errors</th><th>Load Score</th><th>Grade</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        {% set ls = row[7]|float %}
+        {% if ls < 20 %}{% set g='A' %}{% elif ls < 35 %}{% set g='B' %}{% elif ls < 55 %}{% set g='C' %}{% elif ls < 75 %}{% set g='D' %}{% else %}{% set g='F' %}{% endif %}
+        <tr>
+          <td style="color:var(--text-muted); font-size:13px;">{{ row[0] }}</td>
+          <td>{{ row[1] }}</td>
+          <td style="font-family:'DM Mono',monospace;">{{ (row[2] or 0)|round(1) }}</td>
+          <td style="font-family:'DM Mono',monospace;">{{ (row[6] or 0)|round(1) }}%</td>
+          <td style="font-family:'DM Mono',monospace;">{{ row[3] }}</td>
+          <td style="font-family:'DM Mono',monospace; font-weight:600;
+              color:{% if ls < 35 %}var(--ok){% elif ls < 60 %}var(--warn){% else %}var(--danger){% endif %}">
+            {{ (row[7] or 0)|round(1) }}
+          </td>
+          <td>
+            <span class="badge {% if g=='A' %}badge-ok{% elif g in ['B','C'] %}badge-warn{% else %}badge-danger{% endif %}"
+                  style="font-size:12px; padding:3px 10px;">{{ g }}</span>
+          </td>
+          <td style="display:flex; gap:6px; align-items:center;">
+            <a class="btn" href="/result/{{ row[0] }}" style="font-size:12px; padding:6px 14px;">View</a>
+            <a class="btn btn-danger" href="/delete/{{ row[0] }}"
+               onclick="return confirm('Delete session #{{ row[0] }}?')">Delete</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📋</div>
+    <p style="font-size:15px; margin-bottom:20px;">No sessions yet. Take your first test.</p>
+    <a class="btn btn-primary" href="/">Start Test →</a>
+  </div>
+  {% endif %}
+
+  <div class="btn-row"><a class="btn" href="/">← New Test</a></div>
+</div>
+
+<!-- Chart.js loaded FIRST, then init script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% if rows %}
+<script>
+  const rowsData = {{ rows|tojson|safe }};
+  const ids    = rowsData.map(r => '#' + r[0]).reverse();
+  const scores = rowsData.map(r => parseFloat(r[7]) || 0).reverse();
+  const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
+
+  function buildChart() {
+    const gc = isDark() ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+    const lc = isDark() ? '#9aaec8' : '#7a8faa';
+    Chart.defaults.font.family = "'DM Sans', sans-serif";
+
+    new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels: ids,
+        datasets: [{
+          label: 'Cognitive Load Score',
+          data: scores,
+          borderColor: '#3d6adb',
+          backgroundColor: 'rgba(61,106,219,0.08)',
+          borderWidth: 2,
+          pointBackgroundColor: '#3d6adb',
+          pointBorderColor: isDark() ? '#1a2336' : '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true, max: 100, grid: { color: gc }, ticks: { color: lc } },
+          x: { grid: { color: gc }, ticks: { color: lc } }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  // Wait for Chart.js to be ready
+  if (typeof Chart !== 'undefined') {
+    buildChart();
+  } else {
+    window.addEventListener('load', buildChart);
+  }
+</script>
+{% endif %}
+
+<script>
+  const html  = document.documentElement;
+  const tbtn  = document.getElementById('themeToggle');
+  const saved = localStorage.getItem('theme') || 'light';
+  html.setAttribute('data-theme', saved);
+  tbtn.textContent = saved === 'dark' ? '☀️' : '🌙';
+  tbtn.addEventListener('click', () => {
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    tbtn.textContent = next === 'dark' ? '☀️' : '🌙';
+  });
+  document.addEventListener("DOMContentLoaded", () => document.body.classList.add("loaded"));
+  document.querySelectorAll("a[href]").forEach(link => {
+    link.addEventListener("click", function(e) {
+      if (this.href && this.href.startsWith(window.location.origin)) {
+        e.preventDefault(); document.body.classList.remove("loaded");
+        setTimeout(() => window.location = this.href, 300);
+      }
+    });
+  });
+</script>
+</body>
+</html>

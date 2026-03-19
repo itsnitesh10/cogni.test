@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CogniTest — AI Analysis</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .ai-hero {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+      border-radius: var(--radius);
+      padding: 32px 36px;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .ai-hero-top {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+    .ai-grade-circle {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Serif Display', serif;
+      font-size: 32px;
+      font-weight: 400;
+      flex-shrink: 0;
+      border: 2px solid rgba(255,255,255,0.25);
+    }
+    .ai-hero-info { flex: 1; }
+    .ai-hero-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .ai-hero-sub { font-size: 13px; color: rgba(255,255,255,0.55); }
+    .ai-hero-stats {
+      display: flex; gap: 20px; flex-wrap: wrap;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .ai-stat { text-align: center; }
+    .ai-stat-val { font-family: 'DM Mono', monospace; font-size: 20px; color: #fff; }
+    .ai-stat-label { font-size: 11px; color: rgba(255,255,255,0.45); letter-spacing: 0.5px; margin-top: 2px; }
+
+    .insight-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      margin-bottom: 14px;
+    }
+    .insight-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .insight-text {
+      font-size: 15px;
+      line-height: 1.75;
+      color: var(--text-body);
+    }
+
+    .tip-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 4px;
+    }
+    .tip-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+    }
+    .tip-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--accent);
+      margin-bottom: 8px;
+      display: block;
+    }
+    .tip-text { font-size: 13px; color: var(--text-body); line-height: 1.65; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .peace-card {
+      background: linear-gradient(135deg, #f0f7ff, #e8f0fe);
+      border: 1px solid #c5d8f5;
+      border-radius: var(--radius);
+      padding: 22px 24px;
+    }
+    [data-theme="dark"] .peace-card {
+      background: linear-gradient(135deg, rgba(61,106,219,0.1), rgba(61,106,219,0.05));
+      border-color: rgba(61,106,219,0.2);
+    }
+    .peace-icon { font-size: 24px; margin-bottom: 10px; display: block; }
+
+    .factor-row {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .factor-mini {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .tip-grid { grid-template-columns: 1fr; }
+      .two-col  { grid-template-columns: 1fr; }
+      .factor-row { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/"><span>Cogni</span>Test</a>
+  <div class="navbar-right">
+    <a class="nav-link" href="/result/{{ data[0] }}">← Results</a>
+    <a class="nav-link" href="/">New Test</a>
+    <button class="theme-toggle" id="themeToggle">🌙</button>
+  </div>
+</nav>
+
+<div class="container" style="max-width:860px;">
+  <div class="page-header">
+    <div class="page-eyebrow">Session #{{ data[0] }} · Gemma3 AI Analysis</div>
+    <h1 class="page-title">Cognitive <em>Insights</em></h1>
+  </div>
+
+  <!-- Hero -->
+  <div class="ai-hero">
+    <div class="ai-hero-top">
+      <div class="ai-grade-circle
+        {% if grade == 'A' %}style="background:rgba(26,158,110,0.25);"
+        {% elif grade == 'B' %}style="background:rgba(61,106,219,0.25);"
+        {% elif grade == 'C' %}style="background:rgba(196,125,18,0.25);"
+        {% else %}style="background:rgba(192,57,43,0.25);"{% endif %}">
+        {{ grade }}
+      </div>
+      <div class="ai-hero-info">
+        <div class="ai-hero-title">{{ grade_label }} Performance</div>
+        <div class="ai-hero-sub">{{ data[1] }} difficulty · Load score {{ data[7]|round(1) }}/100</div>
+        <div style="margin-top:10px;">
+          <span class="badge {% if ai_output.risk_level == 'Low' %}badge-ok{% elif ai_output.risk_level == 'Medium' %}badge-warn{% else %}badge-danger{% endif %}">
+            <span class="dot {% if ai_output.risk_level == 'Low' %}dot-ok{% elif ai_output.risk_level == 'Medium' %}dot-warn{% else %}dot-danger{% endif %}"></span>
+            {{ ai_output.risk_level }} Risk
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="ai-hero-stats">
+      <div class="ai-stat"><div class="ai-stat-val">{{ data[2]|round(1) }}</div><div class="ai-stat-label">WPM</div></div>
+      <div class="ai-stat"><div class="ai-stat-val">{{ data[6]|round(1) }}%</div><div class="ai-stat-label">Accuracy</div></div>
+      <div class="ai-stat"><div class="ai-stat-val">{{ data[3] }}</div><div class="ai-stat-label">Errors</div></div>
+      <div class="ai-stat"><div class="ai-stat-val">{{ data[4] }}</div><div class="ai-stat-label">Backspaces</div></div>
+      <div class="ai-stat"><div class="ai-stat-val">{{ data[5] }}</div><div class="ai-stat-label">Pauses</div></div>
+      <div class="ai-stat"><div class="ai-stat-val">{{ radar.focus }}</div><div class="ai-stat-label">Focus Score</div></div>
+      <div class="ai-stat"><div class="ai-stat-val">{{ radar.stability }}</div><div class="ai-stat-label">Stability</div></div>
+    </div>
+  </div>
+
+  <!-- Cognitive State -->
+  <div class="insight-card">
+    <span class="insight-tag">Cognitive State</span>
+    <p class="insight-text">{{ ai_output.cognitive_state }}</p>
+  </div>
+
+  <!-- Mental Load Summary -->
+  {% if ai_output.mental_load_summary %}
+  <div class="insight-card">
+    <span class="insight-tag">Mental Load Analysis</span>
+    <p class="insight-text">{{ ai_output.mental_load_summary }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Strongest & Weakest -->
+  {% if ai_output.strongest_area or ai_output.weakest_area %}
+  <div class="two-col" style="margin-bottom:14px;">
+    <div class="insight-card" style="margin-bottom:0; border-left:3px solid var(--ok);">
+      <span class="insight-tag" style="color:var(--ok);">Strongest Area</span>
+      <p class="insight-text" style="font-size:14px;">{{ ai_output.strongest_area }}</p>
+    </div>
+    <div class="insight-card" style="margin-bottom:0; border-left:3px solid var(--danger);">
+      <span class="insight-tag" style="color:var(--danger);">Biggest Weakness</span>
+      <p class="insight-text" style="font-size:14px;">{{ ai_output.weakest_area }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Key Issues -->
+  {% if ai_output.key_issues %}
+  <div class="insight-card">
+    <span class="insight-tag">Key Issues Identified</span>
+    <ul style="list-style:none; padding:0; margin:0;">
+      {% for issue in ai_output.key_issues %}
+      <li style="padding:9px 0; border-bottom:1px solid var(--border); display:flex; gap:10px; font-size:14px; color:var(--text-body); line-height:1.6;">
+        <span style="color:var(--danger); flex-shrink:0; font-weight:600;">!</span>{{ issue }}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- Action Tips -->
+  {% if ai_output.action_tips %}
+  <div class="insight-card">
+    <span class="insight-tag">Action Plan</span>
+    <div class="tip-grid">
+      {% for tip in ai_output.action_tips %}
+      <div class="tip-item">
+        <span class="tip-num">{{ loop.index }}</span>
+        <p class="tip-text">{{ tip }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Mental Peace + Recovery -->
+  <div class="two-col" style="margin-bottom:14px;">
+    {% if ai_output.mental_peace_advice %}
+    <div class="peace-card">
+      <span class="peace-icon">🧘</span>
+      <div style="font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--accent); margin-bottom:8px;">Mental Peace</div>
+      <p style="font-size:14px; color:var(--text-body); line-height:1.75;">{{ ai_output.mental_peace_advice }}</p>
+    </div>
+    {% endif %}
+    {% if ai_output.recovery_plan %}
+    <div class="insight-card" style="margin-bottom:0;">
+      <span class="insight-tag">Recovery Plan</span>
+      <p class="insight-text" style="font-size:14px;">{{ ai_output.recovery_plan }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Factor Breakdown -->
+  <div class="insight-card">
+    <span class="insight-tag">Factor Breakdown</span>
+    <div class="factor-row">
+      {% for key, factor in breakdown.items() %}
+      <div class="factor-mini">
+        <div style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">{{ factor.label }}</div>
+        <div style="font-family:'DM Mono',monospace; font-size:20px; color:var(--text-primary); margin-bottom:6px;">{{ factor.value }}</div>
+        <span class="badge {% if factor.level=='Low' %}badge-ok{% elif factor.level=='Moderate' %}badge-warn{% else %}badge-danger{% endif %}" style="font-size:10px; padding:2px 8px;">{{ factor.level }}</span>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:8px; line-height:1.5;">{{ factor.advice }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <a class="btn" href="/result/{{ data[0] }}">← Back to Results</a>
+    <a class="btn btn-primary" href="/">New Test</a>
+  </div>
+</div>
+
+<script>
+  const html  = document.documentElement;
+  const tbtn  = document.getElementById('themeToggle');
+  const saved = localStorage.getItem('theme') || 'light';
+  html.setAttribute('data-theme', saved);
+  tbtn.textContent = saved === 'dark' ? '☀️' : '🌙';
+  tbtn.addEventListener('click', () => {
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    tbtn.textContent = next === 'dark' ? '☀️' : '🌙';
+  });
+  document.addEventListener("DOMContentLoaded", () => document.body.classList.add("loaded"));
+  document.querySelectorAll("a[href]").forEach(link => {
+    link.addEventListener("click", function(e) {
+      if (this.href && this.href.startsWith(window.location.origin)) {
+        e.preventDefault(); document.body.classList.remove("loaded");
+        setTimeout(() => window.location = this.href, 300);
+      }
+    });
+  });
+</script>
+</body>
+</html>
