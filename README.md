@@ -79,8 +79,7 @@ The system captures behavioral signals such as typing speed, pauses, backspaces,
 
 ### AI Integration
 
-* Groq API (LLM inference)
-
+*local LLM use here i.e ollama gemma3:4b
 ---
 
 ## 🏗️ System Architecture
@@ -91,7 +90,7 @@ User → Frontend (Typing UI)
      → Flask Backend
      → Cognitive Load Calculation
      → ML Model Prediction
-     → AI API (Groq)
+     → AI ollama
      → Results + Visualization
 ```
 
