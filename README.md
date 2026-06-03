@@ -1,10 +1,10 @@
-# 🧠 Cognitive Load Analyzer
+#  Cognitive Load Analyzer
 
 A full-stack web application that analyzes a user's cognitive load using behavioral typing metrics, machine learning, and AI-based insights.
 
 ---
 
-## 📌 Overview
+##  Overview
 
 The **Cognitive Load Analyzer** is designed to evaluate mental effort and performance under different conditions by analyzing typing behavior. It simulates real-world cognitive stress using time constraints and varying levels of text complexity.
 
@@ -12,9 +12,9 @@ The system captures behavioral signals such as typing speed, pauses, backspaces,
 
 ---
 
-## 🚀 Features
+##  Features
 
-* 🎯 **Difficulty-Based Testing**
+*  **Difficulty-Based Testing**
 
   * Easy, Medium, Hard modes with increasing linguistic complexity
   * Time-based constraints to simulate cognitive pressure
@@ -24,33 +24,33 @@ The system captures behavioral signals such as typing speed, pauses, backspaces,
   * Character-level validation (correct / incorrect / pending)
   * Live feedback with visual highlighting
 
-* 📊 **Behavioral Metrics Tracking**
+*  **Behavioral Metrics Tracking**
 
   * Words Per Minute (WPM)
   * Accuracy (%)
   * Pauses (hesitation detection)
   * Backspaces (correction behavior)
 
-* 🧠 **Cognitive Load Calculation**
+*  **Cognitive Load Calculation**
 
   * Custom weighted formula based on behavioral signals
 
-* 🤖 **Machine Learning Integration**
+*  **Machine Learning Integration**
 
   * Random Forest model predicts cognitive load level (Low / Medium / High)
   * Feature importance analysis for explainability
 
-* 🌐 **AI-Powered Insights**
+*  **AI-Powered Insights**
 
   * Cloud-based LLM (Groq/OpenAI-compatible)
   * Provides cognitive state, risk level, and improvement suggestions
 
-* 📈 **Performance Visualization**
+*  **Performance Visualization**
 
   * Interactive charts using Chart.js
   * Session comparison and performance breakdown
 
-* 🗂 **History Management**
+*  **History Management**
 
   * Stores all attempts in SQLite database
   * View past performance trends
@@ -58,7 +58,7 @@ The system captures behavioral signals such as typing speed, pauses, backspaces,
 
 ---
 
-## 🧱 Tech Stack
+##  Tech Stack
 
 ### Frontend
 
@@ -82,7 +82,7 @@ The system captures behavioral signals such as typing speed, pauses, backspaces,
 *local LLM use here i.e ollama gemma3:4b
 ---
 
-## 🏗️ System Architecture
+##  System Architecture
 
 ```
 User → Frontend (Typing UI)
@@ -96,7 +96,7 @@ User → Frontend (Typing UI)
 
 ---
 
-## ⚙️ How It Works
+##  How It Works
 
 1. User selects difficulty level (Easy / Medium / Hard)
 2. A paragraph is loaded based on difficulty
@@ -115,7 +115,7 @@ User → Frontend (Typing UI)
 
 ---
 
-## 🧮 Cognitive Load Formula
+##  Cognitive Load Formula
 
 ```
 Load Score =
@@ -127,7 +127,7 @@ Load Score =
 
 ---
 
-## 🧠 Machine Learning Model
+##  Machine Learning Model
 
 * Algorithm: Random Forest Classifier
 * Features:
@@ -144,7 +144,7 @@ Load Score =
 
 ---
 
-## 🔐 Environment Variables
+##  Environment Variables
 
 Create environment variable:
 
@@ -154,7 +154,7 @@ GROQ_API_KEY=your_api_key_here
 
 ---
 
-## ▶️ Run Locally
+##  Run Locally
 
 ```bash
 # Clone repository
@@ -178,7 +178,7 @@ http://127.0.0.1:5000
 
 ---
 
-## 🌍 Deployment
+##  Deployment
 
 * Can be deployed on Render / Railway / VPS
 * Requires setting environment variable for API key
@@ -186,7 +186,7 @@ http://127.0.0.1:5000
 
 ---
 
-## ⚠️ Limitations
+##  Limitations
 
 * Uses synthetic dataset for ML training
 * Cognitive load formula is heuristic-based
@@ -195,7 +195,7 @@ http://127.0.0.1:5000
 
 ---
 
-## 🎯 Future Improvements
+##  Future Improvements
 
 * User authentication system
 * Real-time analytics dashboard
@@ -205,13 +205,13 @@ http://127.0.0.1:5000
 
 ---
 
-## 👨‍💻 Author
+##  Author
 
 Developed by **Nitesh Bhoir**
 
 ---
 
-## ⭐ Acknowledgment
+##  Acknowledgment
 
 This project explores the intersection of:
 
